@@ -149,11 +149,6 @@ func DiscardNativeOnly(c ClusterResources) error {
 			if p.Spec.RouterID != routerID {
 				return fmt.Errorf("peer %s has RouterID different from %s, in FRR mode all RouterID must be equal", p.Spec.RouterID, c.Peers[0].Spec.RouterID)
 			}
-			peerKey := peerAddressKey(p.Spec)
-			if _, ok := peerAddr[peerKey]; ok {
-				return fmt.Errorf("peer %s already exists, FRR mode doesn't support duplicate BGPPeers", p.Spec.Address)
-			}
-			peerAddr[peerKey] = true
 		}
 	}
 	for _, p := range c.Peers {
