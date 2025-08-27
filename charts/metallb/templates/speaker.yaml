@@ -477,69 +477,6 @@ spec:
           {{- toYaml . | nindent 12 }}
         {{- end }}
       {{- end }}
-      {{- if .Values.prometheus.secureMetricsPort }}
-      - name: kube-rbac-proxy
-        image: {{ .Values.prometheus.rbacProxy.repository }}:{{ .Values.prometheus.rbacProxy.tag }}
-        imagePullPolicy: {{ .Values.prometheus.rbacProxy.pullPolicy }}
-        args:
-          - --logtostderr
-          - --secure-listen-address=:{{ .Values.prometheus.secureMetricsPort }}
-          - --upstream=http://localhost:{{ .Values.prometheus.metricsPort }}/
-          - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-        {{- if .Values.prometheus.speakerMetricsTLSSecret }}
-          - --tls-private-key-file=/etc/metrics/tls.key
-          - --tls-cert-file=/etc/metrics/tls.crt
-        {{- end }}
-        ports:
-          - containerPort: {{ .Values.prometheus.secureMetricsPort }}
-            name: metricshttps
-        resources:
-          requests:
-            cpu: 10m
-            memory: 20Mi
-        terminationMessagePolicy: FallbackToLogsOnError
-        {{- if .Values.prometheus.speakerMetricsTLSSecret }}
-        volumeMounts:
-          - name: metrics-certs
-            mountPath: /etc/metrics
-            readOnly: true
-        {{- end }}
-      {{ end }}
-      {{- if .Values.speaker.frr.enabled }}
-      {{- if .Values.speaker.frr.secureMetricsPort }}
-      - name: kube-rbac-proxy-frr
-        image: {{ .Values.prometheus.rbacProxy.repository }}:{{ .Values.prometheus.rbacProxy.tag | default .Chart.AppVersion }}
-        imagePullPolicy: {{ .Values.prometheus.rbacProxy.pullPolicy }}
-        args:
-          - --logtostderr
-          - --secure-listen-address=:{{ .Values.speaker.frr.secureMetricsPort }}
-          - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-          - --upstream=http://localhost:{{ .Values.speaker.frr.metricsPort }}/
-        {{- if .Values.prometheus.speakerMetricsTLSSecret }}
-          - --tls-private-key-file=/etc/metrics/tls.key
-          - --tls-cert-file=/etc/metrics/tls.crt
-        {{- end }}
-        ports:
-          - containerPort: {{ .Values.speaker.frr.secureMetricsPort }}
-            name: frrmetricshttps
-        env:
-          - name: METALLB_HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.hostIP
-        resources:
-          requests:
-            cpu: 10m
-            memory: 20Mi
-        terminationMessagePolicy: FallbackToLogsOnError
-        {{- if .Values.prometheus.speakerMetricsTLSSecret }}
-        volumeMounts:
-          - name: metrics-certs
-            mountPath: /etc/metrics
-            readOnly: true
-        {{- end }}
-      {{ end }}
-      {{- end }}
       {{- if .Values.speaker.extraContainers }}
       {{- toYaml .Values.speaker.extraContainers | nindent 6 }}
       {{- end }}
